@@ -10,7 +10,7 @@ object Constants {
     val COMPATIBILITY_GOOGLE_APP = Compatibility(
         name = "Google",
         packageName = ORIGINAL_PACKAGE_NAME,
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.APKM,
         appIconColor = 0x4285F4,
         targets = listOf(
             AppTarget(
