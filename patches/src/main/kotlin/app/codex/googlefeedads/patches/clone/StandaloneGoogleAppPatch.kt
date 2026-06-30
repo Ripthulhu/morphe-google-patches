@@ -84,7 +84,7 @@ val standaloneGoogleAppPatch = resourcePatch(
             }
 
             document.forEachElement("provider") { element ->
-                element.replaceAndroidAttributePrefix("authorities", ORIGINAL_PACKAGE_NAME, clonePackageName)
+                element.namespaceProviderAuthorities(clonePackageName)
                 element.replaceAndroidAttribute("permission", permissionRenames)
                 element.replaceAndroidAttribute("readPermission", permissionRenames)
                 element.replaceAndroidAttribute("writePermission", permissionRenames)
@@ -134,6 +134,18 @@ private fun Element.replaceAndroidAttributePrefix(name: String, oldPrefix: Strin
     }
 }
 
+private fun Element.namespaceProviderAuthorities(clonePackageName: String) {
+    val authorities = getAndroidAttribute("authorities")
+    if (authorities.isBlank() || authorities.startsWith("@")) return
+
+    setAndroidAttribute(
+        "authorities",
+        authorities
+            .split(';')
+            .joinToString(";") { authority -> cloneAuthorityName(clonePackageName, authority) },
+    )
+}
+
 private fun org.w3c.dom.Document.forEachElement(vararg tagNames: String, block: (Element) -> Unit) {
     tagNames.forEach { tagName ->
         getElementsByTagName(tagName).forEachElement(block)
@@ -178,4 +190,9 @@ private fun Element.hasLauncherIntentFilter(): Boolean {
 private fun clonePermissionName(clonePackageName: String, originalPermissionName: String): String {
     val suffix = originalPermissionName.replace(Regex("[^A-Za-z0-9_]"), "_")
     return "$clonePackageName.permission.$suffix"
+}
+
+private fun cloneAuthorityName(clonePackageName: String, originalAuthorityName: String): String {
+    val suffix = originalAuthorityName.replace(Regex("[^A-Za-z0-9_]"), "_")
+    return "$clonePackageName.provider.$suffix"
 }
