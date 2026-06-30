@@ -28,7 +28,7 @@ https://github.com/Ripthulhu/morphe-google-patches
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.2](https://github.com/Ripthulhu/morphe-google-patches/releases/tag/v1.1.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.3](https://github.com/Ripthulhu/morphe-google-patches/releases/tag/v1.1.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Google&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
