@@ -46,17 +46,36 @@ val standaloneGoogleAppPatch = resourcePatch(
         val cloneAppName = appNameOption.value!!
 
         document("AndroidManifest.xml").use { document ->
+            val permissionRenames = mutableMapOf<String, String>()
+
             val manifest = document.getElementsByTagName("manifest").item(0) as Element
             manifest.setAttribute("package", clonePackageName)
 
             val application = document.getElementsByTagName("application").item(0) as Element
             application.setAndroidAttribute("label", cloneAppName)
 
-            document.forEachElement("permission", "uses-permission") { element ->
-                element.replaceAndroidAttributePrefix("name", ORIGINAL_PACKAGE_NAME, clonePackageName)
+            document.forEachElement("permission") { element ->
+                val permissionName = element.getAndroidAttribute("name")
+                if (permissionName.isNotBlank()) {
+                    val renamedPermission = clonePermissionName(clonePackageName, permissionName)
+                    permissionRenames[permissionName] = renamedPermission
+                    element.setAndroidAttribute("name", renamedPermission)
+                }
+            }
+
+            application.replaceAndroidAttribute("permission", permissionRenames)
+            application.replaceAndroidAttributePrefix("permission", ORIGINAL_PACKAGE_NAME, clonePackageName)
+
+            document.forEachElement(
+                "uses-permission",
+                "uses-permission-sdk-23",
+                "uses-permission-sdk-m",
+            ) { element ->
+                element.replaceAndroidAttribute("name", permissionRenames)
             }
 
             document.forEachElement("service", "receiver", "activity", "activity-alias") { element ->
+                element.replaceAndroidAttribute("permission", permissionRenames)
                 element.replaceAndroidAttributePrefix("permission", ORIGINAL_PACKAGE_NAME, clonePackageName)
                 element.replaceAndroidAttributePrefix("taskAffinity", ORIGINAL_PACKAGE_NAME, clonePackageName)
                 if (element.hasLauncherIntentFilter()) {
@@ -66,9 +85,18 @@ val standaloneGoogleAppPatch = resourcePatch(
 
             document.forEachElement("provider") { element ->
                 element.replaceAndroidAttributePrefix("authorities", ORIGINAL_PACKAGE_NAME, clonePackageName)
+                element.replaceAndroidAttribute("permission", permissionRenames)
+                element.replaceAndroidAttribute("readPermission", permissionRenames)
+                element.replaceAndroidAttribute("writePermission", permissionRenames)
                 element.replaceAndroidAttributePrefix("permission", ORIGINAL_PACKAGE_NAME, clonePackageName)
                 element.replaceAndroidAttributePrefix("readPermission", ORIGINAL_PACKAGE_NAME, clonePackageName)
                 element.replaceAndroidAttributePrefix("writePermission", ORIGINAL_PACKAGE_NAME, clonePackageName)
+            }
+
+            document.forEachElement("path-permission") { element ->
+                element.replaceAndroidAttribute("permission", permissionRenames)
+                element.replaceAndroidAttribute("readPermission", permissionRenames)
+                element.replaceAndroidAttribute("writePermission", permissionRenames)
             }
         }
 
@@ -93,6 +121,11 @@ private fun Element.getAndroidAttribute(name: String) =
 
 private fun Element.setAndroidAttribute(name: String, value: String) =
     setAttribute("android:$name", value)
+
+private fun Element.replaceAndroidAttribute(name: String, replacements: Map<String, String>) {
+    val value = getAndroidAttribute(name)
+    replacements[value]?.let { setAndroidAttribute(name, it) }
+}
 
 private fun Element.replaceAndroidAttributePrefix(name: String, oldPrefix: String, newPrefix: String) {
     val value = getAndroidAttribute(name)
@@ -140,4 +173,9 @@ private fun Element.hasLauncherIntentFilter(): Boolean {
     }
 
     return found
+}
+
+private fun clonePermissionName(clonePackageName: String, originalPermissionName: String): String {
+    val suffix = originalPermissionName.replace(Regex("[^A-Za-z0-9_]"), "_")
+    return "$clonePackageName.permission.$suffix"
 }
