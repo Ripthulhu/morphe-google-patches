@@ -47,15 +47,30 @@ public final class GoogleFeedAdsPatch {
         String text = describe(node, 0, Collections.newSetFromMap(new IdentityHashMap<>()));
         String lower = text.toLowerCase(Locale.US);
 
+        if (containsAny(lower, "class=fuyc", " fuyc{", ".fuyc{", ".fusn{", "duplo_ad_video")) {
+            return true;
+        }
+
+        if (containsAny(lower, "adsreporting", "googleapp_discover_video_card_click")) {
+            return true;
+        }
+
         if (containsAny(lower, "googleadservices", "doubleclick", "adchoices", "ad_choices")) {
             return true;
         }
 
-        if (containsAny(lower, "ad_lightbox", "native_ad", "ad_unit", "adunit")) {
+        if (containsAny(lower, "ad_lightbox", "native_ad", "ad_unit", "adunit", "ad_video")) {
             return true;
         }
 
-        return containsAny(lower, "sponsored", "advertisement", "paid content", "promoted")
+        return containsAny(
+                lower,
+                "sponsored",
+                "gesponsord",
+                "anzeige",
+                "advertisement",
+                "paid content",
+                "promoted")
                 && containsAny(lower, "streamnode", "renderableunit", "contentid", "topLevelContentId".toLowerCase(Locale.US));
     }
 
@@ -97,33 +112,45 @@ public final class GoogleFeedAdsPatch {
 
         seen.add(value);
         StringBuilder builder = new StringBuilder();
+        appendLimited(builder, "class=");
         appendLimited(builder, type.getName());
         appendLimited(builder, "{toString=");
         appendLimited(builder, safeToString(value));
 
-        for (Field field : type.getDeclaredFields()) {
-            if (Modifier.isStatic(field.getModifiers())) {
-                continue;
-            }
-            try {
-                field.setAccessible(true);
-                Object fieldValue = field.get(value);
-                appendLimited(builder, ", ");
-                appendLimited(builder, field.getName());
-                appendLimited(builder, "=");
-                if (fieldValue instanceof Iterable) {
-                    appendIterable(builder, (Iterable) fieldValue, depth, seen);
-                } else {
-                    appendLimited(builder, describe(fieldValue, depth + 1, seen));
+        Class<?> cursor = type;
+        while (cursor != null && cursor != Object.class) {
+            for (Field field : cursor.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
                 }
-            } catch (Throwable ignored) {
-                appendLimited(builder, ", ");
-                appendLimited(builder, field.getName());
-                appendLimited(builder, "=<inaccessible>");
+                try {
+                    field.setAccessible(true);
+                    Object fieldValue = field.get(value);
+                    appendLimited(builder, ", ");
+                    appendLimited(builder, cursor.getSimpleName());
+                    appendLimited(builder, ".");
+                    appendLimited(builder, field.getName());
+                    appendLimited(builder, "=");
+                    if (fieldValue instanceof Iterable) {
+                        appendIterable(builder, (Iterable) fieldValue, depth, seen);
+                    } else {
+                        appendLimited(builder, describe(fieldValue, depth + 1, seen));
+                    }
+                } catch (Throwable ignored) {
+                    appendLimited(builder, ", ");
+                    appendLimited(builder, cursor.getSimpleName());
+                    appendLimited(builder, ".");
+                    appendLimited(builder, field.getName());
+                    appendLimited(builder, "=<inaccessible>");
+                }
+                if (builder.length() >= MAX_TEXT_CHARS) {
+                    break;
+                }
             }
             if (builder.length() >= MAX_TEXT_CHARS) {
                 break;
             }
+            cursor = cursor.getSuperclass();
         }
 
         appendLimited(builder, "}");

@@ -88,6 +88,34 @@ public final class bwes {
 
 This is a good hook point because filtering `children` before the `byyd` is returned prevents matching nodes from reaching the stream UI.
 
+## Fresh Ad Video Path
+
+A fresh decompile of the same APKM also shows a more specific intrusive ad/video path in `classes8.dex` and `classes9.dex`:
+
+```text
+epns       Discover Video spec
+fusn       ad video metadata extension, extension id 393053250 on futs
+fuyc       ad lightbox/video model, extension field 9 on fusn
+epun       ad lightbox renderer
+epoz       VideoLightboxActivity launcher plus AdsReporting
+```
+
+`epns` checks for the `fusn` extension before inflating:
+
+```text
+R.layout.duplo_ad_video
+```
+
+`epoz` logs/launches through:
+
+```text
+GOOGLEAPP_DISCOVER_VIDEO_CARD_CLICK
+GOOGLEAPP_DISCOVER_VIDEO_ACTIVITY_INTENT_STARTED
+AdsReporting
+```
+
+The extension detector now treats `fusn`/`fuyc` payloads and those ad-video reporting markers as strong ad signals, and it walks superclass fields so protobuf extension storage is visible during reflection.
+
 ## Hook Point
 
 Verified smali sequence in `byyq.smali`:
@@ -123,7 +151,12 @@ adchoices
 ad_lightbox
 native_ad
 ad_unit
+ad_video
+fusn/fuyc ad video payloads
+AdsReporting
 sponsored
+gesponsord
+anzeige
 advertisement
 paid content
 promoted
