@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "patches": [
     {
       "name": "Install as standalone app",
@@ -12,7 +12,7 @@
           "packageName": "com.google.android.googlequicksearchbox",
           "name": "Google",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "APKM",
           "appIconColor": "#4285F4",
           "signatures": null,
           "targets": [
@@ -61,7 +61,7 @@
           "packageName": "com.google.android.googlequicksearchbox",
           "name": "Google",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "APKM",
           "appIconColor": "#4285F4",
           "signatures": null,
           "targets": [
