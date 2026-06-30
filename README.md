@@ -7,6 +7,10 @@ Experimental Morphe patch bundle for the Google app.
 This repository contains a prototype patch that hooks Google Discover stream
 subtree creation and filters likely feed ad nodes before they reach the UI.
 
+It also includes a standalone-install patch that changes the package identity to
+`app.ripthulhu.googlequicksearchbox` and labels the launcher entry `Google
+Morphe`, allowing the patched APK to be installed beside the system Google app.
+
 The first build is intentionally diagnostic: it logs compact samples of early
 Discover nodes to `logcat` under `GoogleFeedAdsPatch`, which is needed to tune
 the ad detector against real feed payloads.
